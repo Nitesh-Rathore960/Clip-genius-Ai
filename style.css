@@ -817,3 +817,74 @@ button {
   }
   }
   
+
+/* VIDEO UPLOAD SECTION */
+
+.upload-section {
+  margin: 25px 0;
+}
+
+.upload-divider {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+  color: #929bb3;
+}
+
+.upload-divider::before,
+.upload-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #29334d;
+}
+
+.upload-divider span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.upload-section > label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.upload-box {
+  padding: 28px 15px;
+  text-align: center;
+  border: 2px dashed #5965bd;
+  border-radius: 14px;
+  background: rgba(91, 104, 210, 0.08);
+}
+
+.upload-icon {
+  display: block;
+  font-size: 35px;
+  color: #9a8cff;
+  margin-bottom: 10px;
+}
+
+.upload-box h3 {
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.upload-box p {
+  color: #aab2c8;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.upload-box input {
+  max-width: 100%;
+  color: #cbd5e1;
+}
+
+.upload-status {
+  margin-top: 12px;
+  color: #aab2c8;
+  font-size: 14px;
+}
