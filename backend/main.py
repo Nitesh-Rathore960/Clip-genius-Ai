@@ -20,7 +20,7 @@ app.add_middleware(
 UPLOAD_DIR = Path(tempfile.gettempdir()) / "clipgenius_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-MAX_SIZE = 100 * 1024 * 1024
+MAX_SIZE = 500 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {
     ".mp4", ".mov", ".mkv", ".webm", ".avi"
@@ -84,7 +84,7 @@ async def upload_video(file: UploadFile = File(...)):
                 if total_size > MAX_SIZE:
                     raise HTTPException(
                         413,
-                        "Video must be 100 MB or smaller"
+                        "Video must be 500 MB or smaller"
                     )
 
                 output.write(chunk)
