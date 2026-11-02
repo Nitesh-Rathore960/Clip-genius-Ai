@@ -1,1 +1,361 @@
 
+/* =================================
+   CLIPGENIUS AI - MAIN JAVASCRIPT
+================================= */
+
+/*
+  Backend connect hone ke baad yahan
+  apne backend ka URL add karna.
+
+  Example:
+  const API_BASE = "https://your-backend.example.com";
+*/
+
+const API_BASE = "";
+
+// ELEMENTS
+const menuBtn = document.getElementById("menuBtn");
+const navLinks = document.querySelector(".nav-links");
+const youtubeUrl = document.getElementById("youtubeUrl");
+const pasteBtn = document.getElementById("pasteBtn");
+const generateBtn = document.getElementById("generateBtn");
+const processingStatus = document.getElementById("processingStatus");
+const videoInfo = document.getElementById("videoInfo");
+const clipCount = document.getElementById("clipCount");
+const clipDuration = document.getElementById("clipDuration");
+const usageText = document.getElementById("usageText");
+const usageBar = document.getElementById("usageBar");
+const clipsContainer = document.getElementById("clipsContainer");
+
+const DAILY_LIMIT = 30;
+const STORAGE_KEY = "clipgenius_usage_v1";
+
+// DAILY USAGE
+function getToday() {
+  const now = new Date();
+
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function getUsage() {
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(STORAGE_KEY)
+    );
+
+    if (!saved || saved.date !== getToday()) {
+      return { date: getToday(), count: 0 };
+    }
+
+    return saved;
+  } catch {
+    return { date: getToday(), count: 0 };
+  }
+}
+
+function saveUsage(count) {
+  const usage = {
+    date: getToday(),
+    count: Math.min(count, DAILY_LIMIT)
+  };
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(usage)
+  );
+
+  updateUsage();
+}
+
+function updateUsage() {
+  const usage = getUsage();
+  const remaining = Math.max(
+    0,
+    DAILY_LIMIT - usage.count
+  );
+
+  usageText.textContent =
+    `${usage.count} / ${DAILY_LIMIT} clips`;
+
+  usageBar.style.width =
+    `${(usage.count / DAILY_LIMIT) * 100}%`;
+
+  generateBtn.disabled = remaining <= 0;
+
+  if (remaining <= 0) {
+    generateBtn.innerHTML = "Daily Limit Reached";
+  } else {
+    generateBtn.innerHTML =
+      "<span>✦</span> Generate AI Clips";
+  }
+}
+
+// MOBILE NAVIGATION
+menuBtn.addEventListener("click", () => {
+  navLinks.classList.toggle("active");
+});
+
+navLinks.querySelectorAll("a").forEach(link => {
+  link.addEventListener("click", () => {
+    navLinks.classList.remove("active");
+  });
+});
+
+// YOUTUBE URL VALIDATION
+function getYouTubeId(value) {
+  try {
+    const url = new URL(value.trim());
+
+    const host = url.hostname
+      .replace(/^www\./, "")
+      .replace(/^m\./, "");
+
+    let id = "";
+
+    if (host === "youtu.be") {
+      id = url.pathname.split("/")[1];
+    }
+
+    if (
+      host === "youtube.com" ||
+      host === "music.youtube.com"
+    ) {
+      if (url.pathname === "/watch") {
+        id = url.searchParams.get("v");
+      } else {
+        const parts = url.pathname.split("/");
+        if (
+          ["shorts", "embed", "live"].includes(parts[1])
+        ) {
+          id = parts[2];
+        }
+      }
+    }
+
+    if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
+      return null;
+    }
+
+    return id;
+
+  } catch {
+    return null;
+  }
+}
+
+// INPUT VALIDATION
+youtubeUrl.addEventListener("input", () => {
+  videoInfo.textContent = "";
+  processingStatus.style.display = "none";
+});
+
+// PASTE BUTTON
+pasteBtn.addEventListener("click", async () => {
+  try {
+    const copiedText = await navigator.clipboard.readText();
+
+    youtubeUrl.value = copiedText.trim();
+    youtubeUrl.dispatchEvent(new Event("input"));
+
+    if (getYouTubeId(youtubeUrl.value)) {
+      videoInfo.textContent = "✓ Valid YouTube link detected.";
+    } else {
+      videoInfo.textContent = "Please paste a valid YouTube link.";
+    }
+
+  } catch {
+    showStatus(
+      "Clipboard access unavailable. Please paste your link manually.",
+      "error"
+    );
+  }
+});
+
+// DISPLAY STATUS
+function showStatus(message, type = "info") {
+  processingStatus.style.display = "block";
+  processingStatus.textContent = message;
+
+  if (type === "error") {
+    processingStatus.style.color = "#ff8888";
+  } else if (type === "success") {
+    processingStatus.style.color = "#55e9b0";
+  } else {
+    processingStatus.style.color = "#a9c6ff";
+  }
+}
+
+// RENDER GENERATED CLIPS
+function renderClips(clips) {
+  clipsContainer.replaceChildren();
+
+  if (!Array.isArray(clips) || clips.length === 0) {
+    clipsContainer.textContent =
+      "No clips were returned by the processing server.";
+    return;
+  }
+
+  clips.forEach((clip, index) => {
+    const card = document.createElement("article");
+    card.className = "feature-card";
+
+    const heading = document.createElement("h3");
+    heading.textContent = clip.title || `Clip ${index + 1}`;
+
+    const details = document.createElement("p");
+    details.textContent =
+      `Start: ${clip.start}s | End: ${clip.end}s`;
+
+    card.append(heading, details);
+
+    if (clip.video_url) {
+      try {
+        const parsed = new URL(clip.video_url);
+
+        if (parsed.protocol !== "https:") {
+          throw new Error("Invalid video URL");
+        }
+
+        const download = document.createElement("a");
+        download.href = parsed.href;
+        download.target = "_blank";
+        download.rel = "noopener noreferrer";
+        download.className = "primary-btn";
+        download.textContent = "Download Clip";
+
+        card.appendChild(download);
+
+      } catch {
+        const error = document.createElement("p");
+        error.textContent = "Invalid download link.";
+        card.appendChild(error);
+      }
+    }
+
+    clipsContainer.appendChild(card);
+  });
+}
+
+// GENERATE AI CLIPS
+generateBtn.addEventListener("click", async () => {
+
+  const url = youtubeUrl.value.trim();
+  const videoId = getYouTubeId(url);
+
+  if (!videoId) {
+    showStatus(
+      "Please enter a valid YouTube video URL.",
+      "error"
+    );
+    youtubeUrl.focus();
+    return;
+  }
+
+  const usage = getUsage();
+  const requestedClips = Number(clipCount.value);
+  const remaining = DAILY_LIMIT - usage.count;
+
+  if (remaining <= 0) {
+    showStatus(
+      "Your daily limit of 30 clips has been reached.",
+      "error"
+    );
+    return;
+  }
+
+  if (requestedClips > remaining) {
+    showStatus(
+      `You can generate only ${remaining} more clips today.`,
+      "error"
+    );
+    return;
+  }
+
+  // Backend connection is required.
+  if (!API_BASE) {
+    showStatus(
+      "YouTube link validated successfully! AI processing backend is not connected yet. We will activate clip generation after backend setup."
+    );
+    videoInfo.textContent =
+      "✓ Valid YouTube video ID: " + videoId;
+
+    return;
+  }
+
+  generateBtn.disabled = true;
+  generateBtn.textContent = "Processing...";
+
+  showStatus(
+    "Your video has been submitted for AI analysis..."
+  );
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/generate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          youtube_url: url,
+          video_id: videoId,
+          clip_count: requestedClips,
+          max_duration: Number(clipDuration.value)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Server error: ${response.status}`
+      );
+    }
+
+    const result = await response.json();
+
+    if (!Array.isArray(result.clips)) {
+      throw new Error("Invalid server response.");
+    }
+
+    if (
+      result.clips.length === 0 ||
+      result.clips.length > requestedClips ||
+      result.clips.length > remaining
+    ) {
+      throw new Error("Unexpected number of clips returned.");
+    }
+
+    renderClips(result.clips);
+
+    saveUsage(usage.count + result.clips.length);
+
+    showStatus(
+      `${result.clips.length} clips generated successfully!`,
+      "success"
+    );
+
+    document.getElementById("results").scrollIntoView({
+      behavior: "smooth"
+    });
+
+  } catch (error) {
+    showStatus(
+      error.message || "Something went wrong. Please try again.",
+      "error"
+    );
+
+  } finally {
+    updateUsage();
+  }
+});
+
+// INITIALIZE
+updateUsage();
+
+console.log("ClipGenius AI initialized successfully.");
+    
