@@ -1,1 +1,304 @@
-# Clip-genius-Ai
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d1c">
+  <title>ClipGenius AI - AI Video Clipper</title>
+  <meta name="description" content="Turn long videos into engaging short clips with ClipGenius AI.">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="#" class="logo">
+      <span class="logo-icon">✦</span>
+      ClipGenius<span>AI</span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#features">Features</a>
+      <a href="#workspace">Create Clips</a>
+    </nav>
+
+    <a href="#workspace" class="nav-btn">Get Started ↗</a>
+
+    <button class="menu-btn" id="menuBtn">☰</button>
+  </header>
+
+  <!-- HERO -->
+  <main>
+    <section class="hero" id="home">
+
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="pulse"></span>
+          AI POWERED VIDEO CLIPPING
+        </div>
+
+        <h1>
+          Turn Long Videos Into
+          <span>Viral Shorts.</span>
+        </h1>
+
+        <p>
+          Let AI discover the best moments from your videos
+          and transform them into ready-to-share short clips.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#workspace" class="primary-btn">
+            Generate Clips <span>→</span>
+          </a>
+          <a href="#features" class="secondary-btn">
+            Explore Features
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div>
+            <h3>AI</h3>
+            <p>Smart Detection</p>
+          </div>
+          <div>
+            <h3>30</h3>
+            <p>Daily Clips</p>
+          </div>
+          <div>
+            <h3>0</h3>
+            <p>Watermarks</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="visual-glow"></div>
+
+        <div class="preview-card">
+          <div class="preview-top">
+            <span class="live-dot"></span>
+            AI VIDEO ANALYZER
+            <span class="preview-status">READY</span>
+          </div>
+
+          <div class="video-placeholder">
+            <div class="play-icon">▶</div>
+            <span>YOUR VIDEO PREVIEW</span>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-line"></div>
+            <div class="timeline-progress"></div>
+          </div>
+
+          <div class="clip-preview-row">
+            <div class="mini-clip">CLIP 01</div>
+            <div class="mini-clip">CLIP 02</div>
+            <div class="mini-clip">CLIP 03</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features section" id="features">
+
+      <div class="section-heading">
+        <span class="eyebrow">POWERFUL FEATURES</span>
+        <h2>Everything You Need to Create <span>Shorts</span></h2>
+        <p>Smart tools to simplify your video creation workflow.</p>
+      </div>
+
+      <div class="feature-grid">
+
+        <div class="feature-card">
+          <div class="feature-icon">✦</div>
+          <h3>AI Clip Detection</h3>
+          <p>Identify interesting moments automatically from long videos.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">◷</div>
+          <h3>Smart Timestamps</h3>
+          <p>Find the start and end time of each selected moment.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">▣</div>
+          <h3>Auto Video Editing</h3>
+          <p>Trim and prepare clips in vertical short-video format.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">Aa</div>
+          <h3>AI Captions</h3>
+          <p>Generate subtitles and customize their appearance.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">◈</div>
+          <h3>AI Titles</h3>
+          <p>Generate engaging titles and hashtag suggestions.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⇩</div>
+          <h3>Easy Downloads</h3>
+          <p>Preview and download your finished clips.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- WORKSPACE -->
+    <section class="workspace section" id="workspace">
+
+      <div class="section-heading">
+        <span class="eyebrow">YOUR WORKSPACE</span>
+        <h2>Create Your <span>Short Clips</span></h2>
+        <p>Paste a supported YouTube video link to get started.</p>
+      </div>
+
+      <div class="workspace-card">
+
+        <div class="workspace-header">
+          <div>
+            <h3>New Project</h3>
+            <p>Start creating your AI clips</p>
+          </div>
+          <span class="free-badge">FREE PLAN</span>
+        </div>
+
+        <label for="youtubeUrl">YouTube Video URL</label>
+
+        <div class="url-input">
+          <span>▶</span>
+          <input
+            type="url"
+            id="youtubeUrl"
+            placeholder="https://www.youtube.com/watch?v=..."
+          >
+          <button id="pasteBtn">Paste</button>
+        </div>
+
+        <div id="videoInfo" class="video-info"></div>
+
+        <div class="settings-grid">
+
+          <div class="setting-item">
+            <label for="clipCount">Number of Clips</label>
+            <select id="clipCount">
+              <option value="3">3 Clips</option>
+              <option value="5" selected>5 Clips</option>
+              <option value="10">10 Clips</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label for="clipDuration">Maximum Duration</label>
+            <select id="clipDuration">
+              <option value="15">15 Seconds</option>
+              <option value="30">30 Seconds</option>
+              <option value="45">45 Seconds</option>
+              <option value="60" selected>60 Seconds</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="usage-box">
+          <div>
+            <span>Daily Usage</span>
+            <strong id="usageText">0 / 30 clips</strong>
+          </div>
+          <div class="usage-track">
+            <div id="usageBar"></div>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn">
+          <span>✦</span> Generate AI Clips
+        </button>
+
+        <p class="disclaimer">
+          Only process videos you own or are authorized to use.
+        </p>
+
+        <div id="processingStatus" class="processing-status"></div>
+
+      </div>
+
+    </section>
+
+    <!-- RESULTS -->
+    <section class="results section" id="results">
+
+      <div class="section-heading">
+        <span class="eyebrow">YOUR CREATIONS</span>
+        <h2>Generated <span>Clips</span></h2>
+        <p>Your generated video clips will appear here.</p>
+      </div>
+
+      <div id="clipsContainer" class="clips-grid">
+
+        <div class="empty-state">
+          <div class="empty-icon">▶</div>
+          <h3>No Clips Yet</h3>
+          <p>Your generated clips will appear here.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- EDITOR -->
+    <section class="editor section" id="editor">
+
+      <div class="section-heading">
+        <span class="eyebrow">CUSTOMIZE YOUR VIDEO</span>
+        <h2>Clip <span>Editor</span></h2>
+        <p>Edit captions and customize your selected clip.</p>
+      </div>
+
+      <div class="editor-card">
+        <div class="editor-empty">
+          <div class="empty-icon">✎</div>
+          <h3>Select a Clip to Edit</h3>
+          <p>Your clip editing tools will appear here after generation.</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <a href="#home" class="logo">
+        <span class="logo-icon">✦</span>
+        ClipGenius<span>AI</span>
+      </a>
+
+      <p>Make every moment count with AI.</p>
+
+      <div class="footer-links">
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#workspace">Create</a>
+      </div>
+
+      <p class="copyright">
+        © 2026 ClipGenius AI. All rights reserved.
+      </p>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+            </html>
+  
