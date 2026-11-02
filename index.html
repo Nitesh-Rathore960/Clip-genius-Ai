@@ -188,7 +188,28 @@
 
         <div id="videoInfo" class="video-info"></div>
 
-        <div id="videoInfo" class="video-info"></div>
+        <!-- VIDEO UPLOAD -->
+<div class="upload-section">
+  <div class="upload-divider">
+    <span>OR</span>
+  </div>
+
+  <label for="videoFile">Upload Your Video</label>
+
+  <div class="upload-box">
+    <span class="upload-icon">⇧</span>
+    <h3>Choose a Video</h3>
+    <p>MP4, MOV, MKV, WEBM or AVI (Max 500 MB)</p>
+
+    <input
+      type="file"
+      id="videoFile"
+      accept=".mp4,.mov,.mkv,.webm,.avi,video/*"
+    >
+  </div>
+
+  <div id="uploadStatus" class="upload-status"></div>
+</div>
 
         <div class="settings-grid">
 
@@ -216,26 +237,6 @@
 
         <div class="settings-grid">
 
-          <div class="setting-item">
-            <label for="clipCount">Number of Clips</label>
-            <select id="clipCount">
-              <option value="3">3 Clips</option>
-              <option value="5" selected>5 Clips</option>
-              <option value="10">10 Clips</option>
-            </select>
-          </div>
-
-          <div class="setting-item">
-            <label for="clipDuration">Maximum Duration</label>
-            <select id="clipDuration">
-              <option value="15">15 Seconds</option>
-              <option value="30">30 Seconds</option>
-              <option value="45">45 Seconds</option>
-              <option value="60" selected>60 Seconds</option>
-            </select>
-          </div>
-
-        </div>
 
         <div class="usage-box">
           <div>
