@@ -1,7 +1,10 @@
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
+from pathlib import Path
+import tempfile
+import uuid
 
 app = FastAPI(title="ClipGenius AI Backend")
 
@@ -13,6 +16,15 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+UPLOAD_DIR = Path(tempfile.gettempdir()) / "clipgenius_uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+MAX_SIZE = 100 * 1024 * 1024
+
+ALLOWED_EXTENSIONS = {
+    ".mp4", ".mov", ".mkv", ".webm", ".avi"
+}
 
 class GenerateRequest(BaseModel):
     youtube_url: HttpUrl
@@ -32,24 +44,67 @@ def health():
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
     if data.clip_count not in [3, 5, 10]:
-        return {
-            "success": False,
-            "message": "Invalid clip count"
-        }
+        raise HTTPException(400, "Invalid clip count")
 
     if data.max_duration not in [15, 30, 45, 60]:
-        return {
-            "success": False,
-            "message": "Invalid clip duration"
-        }
+        raise HTTPException(400, "Invalid clip duration")
 
     return {
         "success": True,
         "status": "connected",
-        "message": (
-            "Backend connected successfully. "
-            "Video processing will be added next."
-        ),
+        "message": "Video processing is not added yet.",
         "clips": []
+    }
+
+@app.post("/api/upload")
+async def upload_video(file: UploadFile = File(...)):
+    extension = Path(file.filename or "").suffix.lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            400,
+            "Unsupported video format"
+        )
+
+    upload_id = str(uuid.uuid4())
+    destination = UPLOAD_DIR / f"{upload_id}{extension}"
+
+    total_size = 0
+
+    try:
+        with destination.open("wb") as output:
+            while True:
+                chunk = await file.read(1024 * 1024)
+
+                if not chunk:
+                    break
+
+                total_size += len(chunk)
+
+                if total_size > MAX_SIZE:
+                    raise HTTPException(
+                        413,
+                        "Video must be 100 MB or smaller"
+                    )
+
+                output.write(chunk)
+
+    except HTTPException:
+        destination.unlink(missing_ok=True)
+        raise
+
+    except Exception:
+        destination.unlink(missing_ok=True)
+        raise HTTPException(500, "Upload failed")
+
+    finally:
+        await file.close()
+
+    return {
+        "success": True,
+        "upload_id": upload_id,
+        "filename": file.filename,
+        "size_mb": round(total_size / (1024 * 1024), 2),
+        "message": "Video uploaded successfully"
     }
     
