@@ -11,7 +11,7 @@
   const API_BASE = "https://your-backend.example.com";
 */
 
-const API_BASE = "";
+const API_BASE = "https://clipgenius-backend-0qyb.onrender.com";
 
 // ELEMENTS
 const menuBtn = document.getElementById("menuBtn");
