@@ -26,6 +26,13 @@ const clipDuration = document.getElementById("clipDuration");
 const usageText = document.getElementById("usageText");
 const usageBar = document.getElementById("usageBar");
 const clipsContainer = document.getElementById("clipsContainer");
+// VIDEO UPLOAD ELEMENTS
+const videoFile = document.getElementById("videoFile");
+const uploadStatus = document.getElementById("uploadStatus");
+
+let uploadedFileId = null;
+
+const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
 const DAILY_LIMIT = 30;
 const STORAGE_KEY = "clipgenius_usage_v1";
@@ -173,6 +180,89 @@ pasteBtn.addEventListener("click", async () => {
       "error"
     );
   }
+});
+
+// VIDEO FILE UPLOAD
+videoFile.addEventListener("change", () => {
+  const file = videoFile.files[0];
+
+  uploadedFileId = null;
+
+  if (!file) return;
+
+  if (file.size > MAX_FILE_SIZE) {
+    uploadStatus.textContent = "Video must be 500 MB or smaller.";
+    uploadStatus.style.color = "#ff8888";
+    videoFile.value = "";
+    return;
+  }
+
+  const allowedTypes = [
+    "mp4", "mov", "mkv", "webm", "avi"
+  ];
+
+  const extension = file.name.split(".").pop().toLowerCase();
+
+  if (!allowedTypes.includes(extension)) {
+    uploadStatus.textContent = "Unsupported video format.";
+    uploadStatus.style.color = "#ff8888";
+    videoFile.value = "";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("POST", `${API_BASE}/api/upload`);
+
+  uploadStatus.textContent = "Uploading: 0%";
+  uploadStatus.style.color = "#a9c6ff";
+
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const percent = Math.round(
+        (event.loaded / event.total) * 100
+      );
+
+      uploadStatus.textContent = `Uploading: ${percent}%`;
+    }
+  };
+
+  xhr.onload = () => {
+    try {
+      const result = JSON.parse(xhr.responseText);
+
+      if (xhr.status < 200 || xhr.status >= 300) {
+        throw new Error(result.detail || "Upload failed.");
+      }
+
+      if (!result.success || !result.upload_id) {
+        throw new Error("Invalid upload response.");
+      }
+
+      uploadedFileId = result.upload_id;
+
+      uploadStatus.textContent =
+        "✓ Video uploaded successfully: " + result.filename;
+
+      uploadStatus.style.color = "#55e9b0";
+
+    } catch (error) {
+      uploadStatus.textContent = error.message;
+      uploadStatus.style.color = "#ff8888";
+    }
+  };
+
+  xhr.onerror = () => {
+    uploadStatus.textContent =
+      "Network error. Please try again.";
+
+    uploadStatus.style.color = "#ff8888";
+  };
+
+  xhr.send(formData);
 });
 
 // DISPLAY STATUS
