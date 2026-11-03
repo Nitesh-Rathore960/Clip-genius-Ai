@@ -1,3 +1,4 @@
+from faster_whisper import WhisperModel
 import subprocess
 import imageio_ffmpeg
 from fastapi import FastAPI, UploadFile, File, HTTPException
