@@ -5,6 +5,7 @@ from pydantic import BaseModel, HttpUrl
 from pathlib import Path
 import tempfile
 import uuid
+from typing import Optional
 
 app = FastAPI(title="ClipGenius AI Backend")
 
@@ -27,7 +28,8 @@ ALLOWED_EXTENSIONS = {
 }
 
 class GenerateRequest(BaseModel):
-    youtube_url: HttpUrl
+    youtube_url: Optional[HttpUrl] = None
+    upload_id: Optional[str] = None
     clip_count: int = 3
     max_duration: int = 30
 
@@ -43,6 +45,24 @@ def health():
 
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
+
+    if not data.youtube_url and not data.upload_id:
+        raise HTTPException(400, "Provide a YouTube URL or upload a video.")
+
+    if data.youtube_url and data.upload_id:
+        raise HTTPException(400, "Choose only one video source.")
+
+    if data.upload_id:
+        try:
+            upload_uuid = uuid.UUID(data.upload_id)
+        except ValueError:
+            raise HTTPException(400, "Invalid upload ID")
+
+        matches = list(UPLOAD_DIR.glob(f"{upload_uuid}.*"))
+
+        if not matches:
+            raise HTTPException(404, "Uploaded video not found. Please upload again.")
+
     if data.clip_count not in [3, 5, 10]:
         raise HTTPException(400, "Invalid clip count")
 
@@ -52,9 +72,9 @@ def generate_clips(data: GenerateRequest):
     return {
         "success": True,
         "status": "connected",
-        "message": "Video processing is not added yet.",
+        "message": "Video received. AI processing is not implemented yet.",
         "clips": []
-    }
+                                }
 
 @app.post("/api/upload")
 async def upload_video(file: UploadFile = File(...)):
