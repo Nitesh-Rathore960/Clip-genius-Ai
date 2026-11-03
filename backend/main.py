@@ -67,6 +67,66 @@ def check_ffmpeg():
     except Exception as e:
         raise HTTPException(500, str(e))
         
+@app.post("/api/audio/extract")
+def extract_audio(upload_id: str):
+
+    try:
+        upload_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        raise HTTPException(400, "Invalid upload ID")
+
+    matches = list(UPLOAD_DIR.glob(f"{upload_uuid}.*"))
+
+    if not matches:
+        raise HTTPException(404, "Uploaded video not found")
+
+    video_path = matches[0]
+    audio_path = UPLOAD_DIR / f"{upload_uuid}_audio.wav"
+
+    try:
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+
+        result = subprocess.run(
+            [
+                ffmpeg_path,
+                "-y",
+                "-i", str(video_path),
+                "-map", "0:a:0",
+                "-vn",
+                "-ac", "1",
+                "-ar", "16000",
+                "-c:a", "pcm_s16le",
+                str(audio_path)
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+
+        if result.returncode != 0:
+            audio_path.unlink(missing_ok=True)
+            raise HTTPException(
+                400,
+                "Audio extraction failed. Check whether the video contains audio."
+            )
+
+        return {
+            "success": True,
+            "message": "Audio extracted successfully",
+            "audio_size_kb": round(audio_path.stat().st_size / 1024, 2)
+        }
+
+    except subprocess.TimeoutExpired:
+        audio_path.unlink(missing_ok=True)
+        raise HTTPException(408, "Audio extraction timed out")
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        audio_path.unlink(missing_ok=True)
+        raise HTTPException(500, "Audio extraction failed")
+        
 
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
