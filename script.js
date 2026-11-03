@@ -330,18 +330,26 @@ function renderClips(clips) {
   });
 }
 
+
 // GENERATE AI CLIPS
 generateBtn.addEventListener("click", async () => {
 
   const url = youtubeUrl.value.trim();
   const videoId = getYouTubeId(url);
 
-  if (!videoId) {
-    showStatus(
-      "Please enter a valid YouTube video URL.",
-      "error"
-    );
-    youtubeUrl.focus();
+  // Check video source
+  if (!url && !uploadedFileId) {
+    showStatus("Please enter a YouTube URL or upload a video.", "error");
+    return;
+  }
+
+  if (url && !videoId) {
+    showStatus("Please enter a valid YouTube URL.", "error");
+    return;
+  }
+
+  if (url && uploadedFileId) {
+    showStatus("Please choose only one video source.", "error");
     return;
   }
 
@@ -349,100 +357,84 @@ generateBtn.addEventListener("click", async () => {
   const requestedClips = Number(clipCount.value);
   const remaining = DAILY_LIMIT - usage.count;
 
-  if (remaining <= 0) {
-    showStatus(
-      "Your daily limit of 30 clips has been reached.",
-      "error"
-    );
+  if (remaining <= 0 || requestedClips > remaining) {
+    showStatus("Your daily clip limit has been reached.", "error");
     return;
   }
 
-  if (requestedClips > remaining) {
-    showStatus(
-      `You can generate only ${remaining} more clips today.`,
-      "error"
-    );
-    return;
-  }
-
-  // Backend connection is required.
-  if (!API_BASE) {
-    showStatus(
-      "YouTube link validated successfully! AI processing backend is not connected yet. We will activate clip generation after backend setup."
-    );
-    videoInfo.textContent =
-      "✓ Valid YouTube video ID: " + videoId;
-
+  if (uploadedFileId && !API_BASE) {
+    showStatus("Backend is not connected.", "error");
     return;
   }
 
   generateBtn.disabled = true;
   generateBtn.textContent = "Processing...";
 
-  showStatus(
-    "Your video has been submitted for AI analysis..."
-  );
+  showStatus("Connecting to video processing server...");
+
+  const payload = {
+    clip_count: requestedClips,
+    max_duration: Number(clipDuration.value)
+  };
+
+  if (uploadedFileId) {
+    payload.upload_id = uploadedFileId;
+  } else {
+    payload.youtube_url = url;
+  }
 
   try {
-    const response = await fetch(
-      `${API_BASE}/api/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          youtube_url: url,
-          video_id: videoId,
-          clip_count: requestedClips,
-          max_duration: Number(clipDuration.value)
-        })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Server error: ${response.status}`
-      );
-    }
+    const response = await fetch(`${API_BASE}/api/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
     const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.detail || "Server error");
+    }
+
+    if (!result.success) {
+      throw new Error("Request was unsuccessful.");
+    }
 
     if (!Array.isArray(result.clips)) {
       throw new Error("Invalid server response.");
     }
 
-    if (
-      result.clips.length === 0 ||
-      result.clips.length > requestedClips ||
-      result.clips.length > remaining
-    ) {
+    if (result.clips.length === 0) {
+      showStatus(
+        "Video received successfully, but AI clipping is not implemented yet.",
+        "success"
+      );
+      return;
+    }
+
+    if (result.clips.length > requestedClips) {
       throw new Error("Unexpected number of clips returned.");
     }
 
     renderClips(result.clips);
-
     saveUsage(usage.count + result.clips.length);
 
-    showStatus(
-      `${result.clips.length} clips generated successfully!`,
-      "success"
-    );
+    showStatus("Clips generated successfully!", "success");
 
     document.getElementById("results").scrollIntoView({
       behavior: "smooth"
     });
 
   } catch (error) {
-    showStatus(
-      error.message || "Something went wrong. Please try again.",
-      "error"
-    );
+    showStatus(error.message || "Something went wrong.", "error");
 
   } finally {
     updateUsage();
   }
 });
+
 
 // INITIALIZE
 updateUsage();
