@@ -128,6 +128,49 @@ def extract_audio(upload_id: str):
         audio_path.unlink(missing_ok=True)
         raise HTTPException(500, "Audio extraction failed")
         
+@app.post("/api/audio/transcribe")
+def transcribe_audio(upload_id: str):
+
+    try:
+        upload_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        raise HTTPException(400, "Invalid upload ID")
+
+    audio_path = UPLOAD_DIR / f"{upload_uuid}_audio.wav"
+
+    if not audio_path.exists():
+        raise HTTPException(404, "Extracted audio not found")
+
+    try:
+        model = WhisperModel(
+            "tiny",
+            device="cpu",
+            compute_type="int8"
+        )
+
+        segments, info = model.transcribe(
+            str(audio_path),
+            beam_size=1
+        )
+
+        transcript = []
+
+        for segment in segments:
+            transcript.append({
+                "start": round(segment.start, 2),
+                "end": round(segment.end, 2),
+                "text": segment.text.strip()
+            })
+
+        return {
+            "success": True,
+            "language": info.language,
+            "transcript": transcript
+        }
+
+    except Exception:
+        raise HTTPException(500, "Audio transcription failed")
+        
 
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
