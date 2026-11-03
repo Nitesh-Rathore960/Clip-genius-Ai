@@ -168,9 +168,9 @@ def transcribe_audio(upload_id: str):
             "transcript": transcript
         }
 
-    except Exception as e:
-    print("TRANSCRIPTION ERROR:", repr(e))
-    raise HTTPException(500, str(e))
+        except Exception as e:
+            print("TRANSCRIPTION ERROR:", repr(e))
+                raise HTTPException(500, str(e))
 
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
