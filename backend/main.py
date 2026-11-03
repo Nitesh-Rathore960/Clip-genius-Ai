@@ -1,4 +1,5 @@
-
+import subprocess
+import imageio_ffmpeg
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
@@ -42,6 +43,30 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/health/ffmpeg")
+def check_ffmpeg():
+    try:
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+
+        result = subprocess.run(
+            [ffmpeg_path, "-version"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode != 0:
+            raise Exception("FFmpeg is not working")
+
+        return {
+            "status": "ok",
+            "ffmpeg": "working"
+        }
+
+    except Exception as e:
+        raise HTTPException(500, str(e))
+        
 
 @app.post("/api/generate")
 def generate_clips(data: GenerateRequest):
