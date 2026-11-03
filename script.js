@@ -158,6 +158,12 @@ function getYouTubeId(value) {
 youtubeUrl.addEventListener("input", () => {
   videoInfo.textContent = "";
   processingStatus.style.display = "none";
+
+  if (youtubeUrl.value.trim()) {
+    uploadedFileId = null;
+    videoFile.value = "";
+    uploadStatus.textContent = "";
+  }
 });
 
 // PASTE BUTTON
